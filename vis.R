@@ -1,6 +1,6 @@
 library(circlize)
 
-neuralVis = function(Ws, height=0.025, gap=1/1.61803, globalnorm=FALSE) {
+neuralVis = function(Ws, height=0.025, gap=1/2.41, filter=0, globalnorm=FALSE) {
     circos.par(track.margin=c(0, 0),
                points.overflow.warning=FALSE,
                gap.degree=0,
@@ -33,7 +33,8 @@ neuralVis = function(Ws, height=0.025, gap=1/1.61803, globalnorm=FALSE) {
 
             for(i in seq_along(1:n)) {
                 color = "darkslategrey"
-                circos.rect((i-1)/n, 0, i/n, 1, border=color)
+                circos.rect((i-1)/n, 0, i/n, 1,
+                            lwd=1, border=color)
             }
         })
 
@@ -47,9 +48,12 @@ neuralVis = function(Ws, height=0.025, gap=1/1.61803, globalnorm=FALSE) {
             minA = min(A)
         }
 
+        circ = if(l == 1) gap/l - height
+               else gap/l - height/(l-1)
+
         circos.trackPlotRegion(
             ylim=c(0, 1),
-            track.height=(gap/l)-height,
+            track.height=circ,
             bg.border=NA,
             panel.fun=function(x, y) {
                 for(i in seq_along(1:n)) {
@@ -89,24 +93,31 @@ neuralVis = function(Ws, height=0.025, gap=1/1.61803, globalnorm=FALSE) {
 
                         alpha = if(A[i, j] < 0) abs(A[i, j]) / abs(minA)
                                 else A[i, j] / maxA
+
+                        if (alpha < filter)
+                            next
+
                         alpha = round(alpha * 255)
-
                         color = sprintf("#%06X%02X",
-                                        if(A[i, j] < 0) 0xDD1100 else 0x11DD00, alpha)
+                                        if(A[i, j] < 0) 0xDD1100
+                                        else 0x11DD00,
+                                        alpha)
 
-                        circos.lines(xs, ys, col=color)
+                        circos.lines(xs, ys,
+                                     lwd=1/l, col=color)
                     }
                 }
             })
 
         circos.trackPlotRegion(
             ylim=c(0, 1),
-            track.height=height,
+            track.height=height/l,
             bg.border=NA,
             panel.fun=function(x, y) {
                 for(j in seq_along(1:m)) {
                     color = "darkslategrey"
-                    circos.rect((j-1)/m, 0, j/m, 1, border=color)
+                    circos.rect((j-1)/m, 0, j/m, 1,
+                                lwd=1/l, border=color)
                 }
             })
     }
@@ -114,14 +125,21 @@ neuralVis = function(Ws, height=0.025, gap=1/1.61803, globalnorm=FALSE) {
     circos.clear()
 }
 
-set.seed(99)
+set.seed(565)
 
-n = 19
-m = 33
-q = 19
-w = 12
-A = matrix(rnorm(n*m), nrow=n, ncol=m)
-B = matrix(rnorm(m*q), nrow=m, ncol=q)
-C = matrix(5*rnorm(q*w), nrow=q, ncol=w)
+As = list()
+L = 50
 
-neuralVis(list(A, B, C), gap=1/3.14, globalnorm=FALSE)
+for (i in 1:L) {
+    n = sample(1:50, 1)
+    m = sample(1:50, 1)
+    A = matrix(rnorm(n*m), nrow=n, ncol=m)
+    As[[i]] = A
+}
+
+SILVER = 2.4142135623730950488
+GOLDEN = 1.6180339887498948482
+
+svg("Rplot.svg")
+neuralVis(As, gap=1/GOLDEN, filter=0, globalnorm=FALSE)
+dev.off()
