@@ -49,7 +49,7 @@ neuralVis = function(Ws, height=0.025, gap=1/1.61803, globalnorm=FALSE) {
 
         circos.trackPlotRegion(
             ylim=c(0, 1),
-            track.height=gap-height,
+            track.height=(gap/l)-height,
             bg.border=NA,
             panel.fun=function(x, y) {
                 for(i in seq_along(1:n)) {
