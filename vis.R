@@ -57,6 +57,13 @@ neuralVis = function(Ws, height=0.025, gap=1/2.41, filter=0, globalnorm=FALSE) {
             bg.border=NA,
             panel.fun=function(x, y) {
                 for(i in seq_along(1:n)) {
+                    red = 0
+                    green = 255
+                    blue = round(255*(i/n))
+
+                    primary = sprintf("#%02X%02X%02X", red, green, blue)
+                    secondary = sprintf("#%02X%02X%02X", 255-red, 255-green, 255-blue)
+                    
                     for(j in seq_along(1:m)) {
                         l1 = (i-1)/n
                         r1 = i/n
@@ -98,9 +105,9 @@ neuralVis = function(Ws, height=0.025, gap=1/2.41, filter=0, globalnorm=FALSE) {
                             next
 
                         alpha = round(alpha * 255)
-                        color = sprintf("#%06X%02X",
-                                        if(A[i, j] < 0) 0xDD1100
-                                        else 0x11DD00,
+                        color = sprintf("%s%02X",
+                                        if(A[i, j] < 0) primary
+                                        else secondary,
                                         alpha)
 
                         circos.lines(xs, ys,
@@ -125,21 +132,21 @@ neuralVis = function(Ws, height=0.025, gap=1/2.41, filter=0, globalnorm=FALSE) {
     circos.clear()
 }
 
-set.seed(565)
+## set.seed(5151)
 
 As = list()
 L = 50
 
+n = sample(1:50, 1)
 for (i in 1:L) {
-    n = sample(1:50, 1)
-    m = sample(1:50, 1)
+    m = sample(1:20, 1)
     A = matrix(rnorm(n*m), nrow=n, ncol=m)
     As[[i]] = A
+
+    n = m
 }
 
 SILVER = 2.4142135623730950488
 GOLDEN = 1.6180339887498948482
 
-svg("Rplot.svg")
-neuralVis(As, gap=1/GOLDEN, filter=0, globalnorm=FALSE)
-dev.off()
+neuralVis(As, gap=1/SILVER, filter=0, globalnorm=FALSE)
